@@ -8,9 +8,9 @@
   "license": "ISC",
   "scripts": {
     "clean": "rm dist/bundle.js",
+    "snow_start": "snowpack dev",
     "build": "snowpack build",
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "dependencies": {
     "express": "^4.17.1",
