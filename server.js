@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const spawn = require("child_process").spawn;
 
@@ -144,4 +145,4 @@ app.post("/playerMove", async (req, res) => {
 
 app.use(express.static("build"));
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
