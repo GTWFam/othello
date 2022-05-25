@@ -19,11 +19,17 @@ let playerTurn = false;
 
 async function getAIMove() {
   if (player === null) return "No player found.";
-  const othello = spawn("python", [
+  const othello = spawn("python3", [
     "othelloAI.py",
     othelloBoard.toString(),
     ai,
   ]);
+
+  othello.on("error", (err) => {
+    console.log(
+      `Encountered an error running child process: \n${err.toString()}`
+    );
+  });
 
   for await (const data of othello.stdout) {
     return data.toString();
@@ -36,11 +42,17 @@ async function getAIMove() {
 
 async function getValidMoves() {
   if (player === null) return "No player found.";
-  const othello = spawn("python", [
+  const othello = spawn("python3", [
     "othelloMoves.py",
     othelloBoard.toString(),
     player,
   ]);
+
+  othello.on("error", (err) => {
+    console.log(
+      `Encountered an error running child process: \n${err.toString()}`
+    );
+  });
 
   for await (const data of othello.stdout) {
     return data.toString();
@@ -54,12 +66,18 @@ async function getValidMoves() {
 async function makePlayerMove(move) {
   if (player === null) return "No player found.";
 
-  const othello = spawn("python", [
+  const othello = spawn("python3", [
     "othelloAI.py",
     othelloBoard.toString(),
     player,
     move,
   ]);
+
+  othello.on("error", (err) => {
+    console.log(
+      `Encountered an error running child process: \n${err.toString()}`
+    );
+  });
 
   for await (const data of othello.stdout) {
     return data.toString();
@@ -124,6 +142,7 @@ app.get("/validMoves", async (req, res) => {
     console.log("No player");
     return;
   }
+  console.log("Getting Valid Moves");
   let json = await getValidMoves();
   json = json.trim();
   let data = JSON.parse(json);
