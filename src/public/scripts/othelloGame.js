@@ -63,8 +63,6 @@ function drawShape(aShape, offset) {
 }
 
 async function showMoves() {
-  console.log("Board before showing the moves");
-  console.log(board);
   drawShape(board, { x: 0, y: 0 });
   await fetch("/validMoves", {
     method: "POST",
@@ -80,8 +78,6 @@ async function showMoves() {
     .then((response) => response.json())
     .then((data) => {
       moves = data.legal;
-      console.log("Moves:");
-      console.log(moves);
       if (moves === []) {
         moves = ["No Moves"];
       } else {
@@ -136,7 +132,6 @@ function playerMove() {
 }
 
 function handleCanvasClick(e) {
-  console.log("Clicked!");
   clickListener(e, makeNextMove);
 }
 
@@ -187,8 +182,6 @@ async function clickListener(event, update) {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Board after making a move:");
-        console.log(data.json.board);
         board = data.json.board;
         drawShape(board, { x: 0, y: 0 });
         playerTurn = false;
@@ -297,7 +290,6 @@ export async function resetOthello() {
 }
 
 export async function loadOthello() {
-  console.log(board.toString());
   console.log("Welcome to Othello!");
   canvas = document.getElementById("othello");
   context = canvas.getContext("2d");
