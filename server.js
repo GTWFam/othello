@@ -2,23 +2,23 @@ require("dotenv").config();
 const express = require("express");
 const spawn = require("child_process").spawn;
 
-let othelloBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 1, 2, 0, 0, 0],
-  [0, 0, 0, 2, 1, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-let player = null;
-let ai = null;
 let playerTurn = false;
 
-async function getAIMove() {
+function deleteAllThrees(board) {
+  board.forEach((row, index) => {
+    row.forEach((square, i) => {
+      if (square === 3) {
+        board[index][i] = 0;
+      }
+    });
+  });
+  return board;
+}
+
+async function getAIMove(othelloBoard, player) {
+  othelloBoard = deleteAllThrees(othelloBoard);
   if (player === null) return "No player found.";
+  let ai = (3 - player).toString();
   const othello = spawn("python3", [
     "othelloAI.py",
     othelloBoard.toString(),
@@ -40,7 +40,10 @@ async function getAIMove() {
   });
 }
 
-async function getValidMoves() {
+// Sample othelloBoard.toString()
+// "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+async function getValidMoves(othelloBoard, player) {
+  othelloBoard = deleteAllThrees(othelloBoard);
   if (player === null) return "No player found.";
   const othello = spawn("python3", [
     "othelloMoves.py",
@@ -63,7 +66,8 @@ async function getValidMoves() {
   });
 }
 
-async function makePlayerMove(move) {
+async function makePlayerMove(move, othelloBoard, player) {
+  othelloBoard = deleteAllThrees(othelloBoard);
   if (player === null) return "No player found.";
 
   const othello = spawn("python3", [
@@ -93,26 +97,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/getOthello", (req, res) => {
-  if (player === null) {
-    player = Math.floor(Math.random() * 2 + 1).toString();
-    ai = (3 - player).toString();
-  }
+  let player = Math.floor(Math.random() * 2 + 1).toString();
   if (player === "1") {
     playerTurn = true;
   }
-  res.json({ board: othelloBoard, player: parseInt(player), turn: playerTurn });
+  let board = [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 2, 0, 0, 0],
+    [0, 0, 0, 2, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+  ];
+  res.json({ board: board, player: parseInt(player), turn: playerTurn });
   res.end();
 });
 
 app.get("/resetOthello", (req, res) => {
-  player = Math.floor(Math.random() * 2 + 1).toString();
-  ai = (3 - player).toString();
+  let player = Math.floor(Math.random() * 2 + 1).toString();
   if (player === "1") {
     playerTurn = true;
   } else {
     playerTurn = false;
   }
-  othelloBoard = [
+  let othelloBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -126,35 +136,40 @@ app.get("/resetOthello", (req, res) => {
   res.end();
 });
 
-app.get("/AIMove", async (req, res) => {
+app.post("/AIMove", async (req, res) => {
   console.log("AI Moved");
   playerTurn = true;
-  let json = await getAIMove();
+  console.log(req.body.othelloBoard);
+  let json = await getAIMove(req.body.othelloBoard, req.body.player);
   json = json.trim();
-  let data = JSON.parse(json);
-  othelloBoard = data.board;
   res.json({ json: json });
   res.end();
 });
 
-app.get("/validMoves", async (req, res) => {
-  if (player === null) {
+app.post("/validMoves", async (req, res) => {
+  if (req.body.player === null) {
     console.log("No player");
     return;
   }
   console.log("Getting Valid Moves");
-  let json = await getValidMoves();
+  console.log(req.body.othelloBoard);
+  let json = await getValidMoves(req.body.othelloBoard, req.body.player);
   json = json.trim();
   let data = JSON.parse(json);
-  res.json({ json: data });
+  console.log(data);
+  res.json(data);
   res.end();
 });
 
 app.post("/playerMove", async (req, res) => {
   console.log("Player Moved");
+  console.log(req.body.othelloBoard);
   playerTurn = false;
-  let the_move = req.body.theMove;
-  let json = await makePlayerMove(the_move);
+  let json = await makePlayerMove(
+    req.body.theMove,
+    req.body.othelloBoard,
+    req.body.player
+  );
   json = json.trim();
   let data = JSON.parse(json);
   othelloBoard = data.board;

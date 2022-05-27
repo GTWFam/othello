@@ -1,5 +1,5 @@
 import React from "react";
-import Othello from "./Othello";
+import Othello from "./components/Othello";
 
 class App extends React.Component {
   render() {

@@ -125,4 +125,4 @@ if __name__ == "__main__":
     the_board = convert_string_board(string_board)
     the_player = int(sys.argv[2])
     legal = valid_moves(the_board, the_player)
-    print(json.dumps(legal))
+    print(json.dumps({"legal": list(legal.keys())}))

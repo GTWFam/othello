@@ -1,11 +1,21 @@
+const colors = ["#00947e", "#fdfdfd", "#0d0d0d"];
 let canvas = null;
 let context = null;
-let board = null;
 let player = null;
 let playerTurn = null;
 let w_score = 0;
 let b_score = 0;
-const colors = ["#00947e", "#fdfdfd", "#0d0d0d"];
+
+let board = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 2, 0, 0, 0],
+  [0, 0, 0, 2, 1, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
 
 let moves = null;
 
@@ -53,21 +63,29 @@ function drawShape(aShape, offset) {
 }
 
 async function showMoves() {
+  console.log("Board before showing the moves");
+  console.log(board);
+  drawShape(board, { x: 0, y: 0 });
   await fetch("/validMoves", {
-    method: "GET",
+    method: "POST",
     mode: "cors",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      othelloBoard: board,
+      player: player,
+    }),
   })
     .then((response) => response.json())
     .then((data) => {
-      let json = data.json;
-      moves = Object.keys(json);
+      moves = data.legal;
+      console.log("Moves:");
+      console.log(moves);
       if (moves === []) {
         moves = ["No Moves"];
       } else {
-        let temp_board = board;
+        let temp_board = [...board];
         moves.forEach((move) => {
           let split = move.split(" ");
           let row = split[0];
@@ -78,7 +96,7 @@ async function showMoves() {
       }
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error("Error: ", error);
     });
 }
 
@@ -89,11 +107,15 @@ async function aiMove(update) {
     playerTurn = true;
   }
   await fetch("/AIMove", {
-    method: "GET",
+    method: "POST",
     mode: "cors",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      othelloBoard: board,
+      player: player,
+    }),
   })
     .then((response) => response.json())
     .then((data) => {
@@ -113,17 +135,26 @@ function playerMove() {
   showMoves();
 }
 
+function handleCanvasClick(e) {
+  console.log("Clicked!");
+  clickListener(e, makeNextMove);
+}
+
 async function clickListener(event, update) {
   event.preventDefault();
+  console.log("Handling the click!");
   if (!playerTurn) {
+    console.log("Not your turn!");
     alert("Not your turn!");
-    return "Not your turn!";
+    return;
   }
   if (moves === null) {
+    console.log("Moves is null!");
     update();
     return;
   }
   if (moves[0] === "No Moves") {
+    console.log("No Moves");
     playerTurn = false;
     update();
     return;
@@ -134,18 +165,30 @@ async function clickListener(event, update) {
   let col = Math.floor(x / 70);
   let row = Math.floor(y / 70);
   let rcString = row.toString() + " " + col.toString();
-  if (moves.includes(rcString)) {
+  if (!moves.includes(rcString)) {
+    console.log("Invalid Move!");
+    console.log(rcString);
+    console.log(moves);
+    return;
+  } else {
+    console.log("Sending move to Server!");
     moves = null;
     await fetch("/playerMove", {
       method: "POST",
       mode: "cors",
-      body: JSON.stringify({ theMove: rcString }),
+      body: JSON.stringify({
+        theMove: rcString,
+        othelloBoard: board,
+        player: player,
+      }),
       headers: {
         "Content-Type": "application/json",
       },
     })
       .then((response) => response.json())
       .then((data) => {
+        console.log("Board after making a move:");
+        console.log(data.json.board);
         board = data.json.board;
         drawShape(board, { x: 0, y: 0 });
         playerTurn = false;
@@ -157,13 +200,11 @@ async function clickListener(event, update) {
       .catch((error) => {
         console.error("Error:", error);
       });
-  } else {
-    return "Invalid move";
   }
 }
 
 async function makeNextMove() {
-  await sleep(2000).then(() => {
+  await sleep(1500).then(() => {
     requestAnimationFrame(game);
   });
 }
@@ -198,10 +239,12 @@ function game() {
   );
   if (empty === 0 || empty_w === 0 || empty_b === 0) {
     if (w_score > b_score) {
-      document.getElementById("othelloMessage").innerText = "White Wins!";
+      let winner = document.getElementById("w_player").innerText;
+      document.getElementById("othelloMessage").innerText = winner + " Wins!";
       return "White Wins!";
     } else if (w_score < b_score) {
-      document.getElementById("othelloMessage").innerText = "Black Wins!";
+      let winner = document.getElementById("b_player").innerText;
+      document.getElementById("othelloMessage").innerText = winner + " Wins!";
       return "Black Wins!";
     } else {
       document.getElementById("othelloMessage").innerText = "It's a Tie!";
@@ -244,6 +287,7 @@ export async function resetOthello() {
   drawShape(board, { x: 0, y: 0 });
   document.getElementById("w_player").innerText = player == 1 ? "Player" : "AI";
   document.getElementById("b_player").innerText = player == 2 ? "Player" : "AI";
+  document.getElementById("othello").onclick = handleCanvasClick;
   updateScore();
   try {
     startGame();
@@ -253,6 +297,7 @@ export async function resetOthello() {
 }
 
 export async function loadOthello() {
+  console.log(board.toString());
   console.log("Welcome to Othello!");
   canvas = document.getElementById("othello");
   context = canvas.getContext("2d");
@@ -279,17 +324,11 @@ export async function loadOthello() {
   drawShape(board, { x: 0, y: 0 });
   document.getElementById("w_player").innerText = player == 1 ? "Player" : "AI";
   document.getElementById("b_player").innerText = player == 2 ? "Player" : "AI";
+  document.getElementById("othello").onclick = handleCanvasClick;
   updateScore();
   sleep(5000);
   try {
     startGame();
-    canvas.addEventListener(
-      "click",
-      (e) => {
-        clickListener(e, makeNextMove);
-      },
-      false
-    );
   } catch (e) {
     console.log("Unable to start the game: ", e);
   }
