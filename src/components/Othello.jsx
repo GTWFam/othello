@@ -2,7 +2,6 @@ import React from "react";
 import { Container, Row, Col, Button, Offcanvas } from "react-bootstrap";
 import { loadOthello, resetOthello } from "../public/scripts/othelloGame";
 import Rules from "./Rules";
-import GA4React from "ga-4-react";
 
 class Othello extends React.Component {
   constructor(props) {
