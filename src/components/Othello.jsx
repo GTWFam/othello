@@ -18,7 +18,10 @@ class Othello extends React.Component {
       .then((res) => res.json())
       .then((data) => {
         const ga4react = new GA4React(data.GA_CODE, {
-          options: { cookieFlags: "SameSite=None; Secure" },
+          gaConfig: {
+            siteSpeedSampleRate: 100,
+            cookieFlags: "SameSite=None; Secure",
+          },
         });
         ga4react.initialize();
       })
