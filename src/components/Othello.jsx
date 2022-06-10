@@ -21,6 +21,7 @@ class Othello extends React.Component {
           gaConfig: {
             siteSpeedSampleRate: 100,
             cookieFlags: "SameSite=None; Secure",
+            allowLinker: true,
           },
         });
         ga4react.initialize();
