@@ -1,3 +1,5 @@
+import GA4React from "ga-4-react";
+
 const colors = ["#00947e", "#fdfdfd", "#0d0d0d"];
 let canvas = null;
 let context = null;
@@ -132,6 +134,12 @@ function playerMove() {
 }
 
 function handleCanvasClick(e) {
+  fetch(`/getGACode`, { method: "get", "no-cors": true })
+    .then((res) => res.json())
+    .then((data) => {
+      const ga4react = new GA4React(data.GA_CODE);
+      ga4react.gtag("event", "Othello Click");
+    });
   clickListener(e, makeNextMove);
 }
 

@@ -96,6 +96,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/getGACode", (req, res) => {
+  res.json({ GA_CODE: process.env.GA_CODE });
+  res.end();
+});
+
 app.get("/getOthello", (req, res) => {
   let player = Math.floor(Math.random() * 2 + 1).toString();
   if (player === "1") {

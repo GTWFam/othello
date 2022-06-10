@@ -2,6 +2,7 @@ import React from "react";
 import { Container, Row, Col, Button, Offcanvas } from "react-bootstrap";
 import { loadOthello, resetOthello } from "../public/scripts/othelloGame";
 import Rules from "./Rules";
+import GA4React from "ga-4-react";
 
 class Othello extends React.Component {
   constructor(props) {
@@ -13,7 +14,15 @@ class Othello extends React.Component {
   }
 
   componentDidMount() {
-    loadOthello();
+    fetch(`/getGACode`, { method: "get", "no-cors": true })
+      .then((res) => res.json())
+      .then((data) => {
+        const ga4react = new GA4React(data.GA_CODE);
+        ga4react.initialize();
+      })
+      .then(() => {
+        loadOthello();
+      });
   }
 
   toggleShow() {
