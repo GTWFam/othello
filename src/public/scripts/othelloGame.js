@@ -1,4 +1,4 @@
-import { gtag } from "./analytics";
+import { gtag } from "./googleAnalytics";
 
 const colors = ["#00947e", "#fdfdfd", "#0d0d0d"];
 let canvas = null;
