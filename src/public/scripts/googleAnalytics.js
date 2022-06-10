@@ -11,8 +11,7 @@ document.addEventListener(
       .then((data) => {
         gtag("js", new Date());
 
-        gtag("config", data.GA_CODE);
-        gtag("set", {
+        gtag("config", data.GA_CODE, {
           siteSpeedSampleRate: 100,
           cookieFlags: "SameSite=None; Secure",
           allowLinker: true,
