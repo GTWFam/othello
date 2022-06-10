@@ -1,4 +1,4 @@
-import GA4React from "ga-4-react";
+import { gtag } from "./analytics";
 
 const colors = ["#00947e", "#fdfdfd", "#0d0d0d"];
 let canvas = null;
@@ -134,12 +134,7 @@ function playerMove() {
 }
 
 function handleCanvasClick(e) {
-  fetch(`/getGACode`, { method: "get", "no-cors": true })
-    .then((res) => res.json())
-    .then((data) => {
-      const ga4react = new GA4React(data.GA_CODE);
-      ga4react.gtag("event", "Othello Click");
-    });
+  gtag("event", "Othello Click");
   clickListener(e, makeNextMove);
 }
 
